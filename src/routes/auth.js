@@ -53,7 +53,14 @@ router.post('/login', async (req, res) => {
         
         if (!user) return res.status(400).json({ error: 'User not found' });
 
-        const validPassword = await bcrypt.compare(password, user.passwordHash);
+        // Postgres returns lowercase column names by default
+        const storedHash = user.passwordhash || user.passwordHash;
+        if (!storedHash) {
+            console.error('Login Error: Password hash not found in user record', user);
+            return res.status(500).json({ error: 'Account error. Please contact admin.' });
+        }
+
+        const validPassword = await bcrypt.compare(password, storedHash);
         if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
 
         const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
