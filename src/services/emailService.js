@@ -1,29 +1,24 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    // Force IPv4 to avoid IPv6 timeouts in cloud environments
-    family: 4
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: to,
-        subject: subject,
-        html: html
-    };
-
     try {
         console.log(`Attempting to send email to ${to} with subject: ${subject}`);
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`Email sent successfully to ${to}. MessageId: ${info.messageId}`);
+        
+        const { data, error } = await resend.emails.send({
+            from: 'Accountability <updates@samstudy.live>',
+            to: to,
+            subject: subject,
+            html: html
+        });
+
+        if (error) {
+            console.error(`FAILED to send email to ${to}. Error:`, error);
+            return false;
+        }
+
+        console.log(`Email sent successfully to ${to}. ID: ${data.id}`);
         return true;
     } catch (error) {
         console.error(`FAILED to send email to ${to}. Error:`, error);
