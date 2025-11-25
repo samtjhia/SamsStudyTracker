@@ -8,7 +8,11 @@ const isRemoteDB = connectionString && !connectionString.includes('localhost') &
 
 const pool = new Pool({
     connectionString: connectionString,
-    ssl: (isProduction || isRemoteDB) ? { rejectUnauthorized: false } : false
+    ssl: (isProduction || isRemoteDB) ? { rejectUnauthorized: false } : false,
+    // Add keep-alive settings to prevent Supabase connection drops
+    keepAlive: true,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000
 });
 
 const initDb = async () => {
