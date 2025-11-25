@@ -141,6 +141,10 @@ const generateEmailContent = (userName, dateStr, totalSeconds, targetMinutes, se
             <div style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center;">
                 ${legendHtml}
             </div>
+
+            <p style="text-align: center; margin-top: 25px;">
+                <a href="https://www.samstudy.live/" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Live Feed</a>
+            </p>
             
             <p style="margin-top: 30px; font-size: 0.9em; color: #666;">Automated Accountability Report for ${userName}</p>
         </div>
