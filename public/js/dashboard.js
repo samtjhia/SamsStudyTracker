@@ -8,6 +8,7 @@ const startTimerBtn = document.getElementById('start-timer-btn');
 const pauseTimerBtn = document.getElementById('pause-timer-btn');
 const stopTimerBtn = document.getElementById('stop-timer-btn');
 const studyTopicInput = document.getElementById('study-topic');
+const statusImage = document.getElementById('status-image');
 
 // Timer Logic
 startTimerBtn.addEventListener('click', async () => {
@@ -17,6 +18,7 @@ startTimerBtn.addEventListener('click', async () => {
     }
 
     startTimer();
+    statusImage.src = '/images/piratewriting.png';
     
     startTimerBtn.classList.add('hidden');
     pauseTimerBtn.classList.remove('hidden');
@@ -108,6 +110,7 @@ stopTimerBtn.addEventListener('click', async () => {
     elapsedTime = 0;
     isPaused = false;
     updateTimerDisplay(0);
+    statusImage.src = '/images/snorlax.png';
     
     startTimerBtn.classList.remove('hidden');
     pauseTimerBtn.classList.add('hidden');
@@ -155,6 +158,7 @@ async function checkLiveSession() {
         const session = await res.json();
         if (session) {
             // Restore Session State
+            statusImage.src = '/images/piratewriting.png';
             studyTopicInput.value = session.topic;
             studyTopicInput.disabled = true;
             document.getElementById('is-private-session').checked = session.isPrivate;

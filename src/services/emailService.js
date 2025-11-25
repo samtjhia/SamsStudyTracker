@@ -7,7 +7,7 @@ const sendEmail = async (to, subject, html) => {
         console.log(`Attempting to send email to ${to} with subject: ${subject}`);
         
         const { data, error } = await resend.emails.send({
-            from: 'Accountability <updates@samstudy.live>',
+            from: 'Did Sam study today? <updates@samstudy.live>',
             to: to,
             subject: subject,
             html: html

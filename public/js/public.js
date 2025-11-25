@@ -4,6 +4,7 @@ const liveTimerEl = document.getElementById('live-timer');
 const statTotalTimeEl = document.getElementById('stat-total-time');
 const statSessionCountEl = document.getElementById('stat-session-count');
 const sessionListEl = document.getElementById('session-list');
+const publicStatusImage = document.getElementById('public-status-image');
 
 let liveTimerInterval;
 let dailyChartInstance;
@@ -52,6 +53,7 @@ async function loadPublicData() {
         liveStatusContainer.classList.remove('hidden');
 
         if (data.liveStatus && data.liveStatus.start) {
+            publicStatusImage.src = '/images/piratewriting.png';
             liveStatusHeader.textContent = '● LIVE NOW';
             liveStatusHeader.classList.remove('text-gray-500');
             liveStatusHeader.classList.add('text-green-500', 'animate-pulse');
@@ -99,6 +101,7 @@ async function loadPublicData() {
         } else {
             if (liveTimerInterval) clearInterval(liveTimerInterval);
 
+            publicStatusImage.src = '/images/snorlax.png';
             liveStatusHeader.textContent = 'OFFLINE';
             liveStatusHeader.classList.remove('text-green-500', 'animate-pulse');
             liveStatusHeader.classList.add('text-gray-500');
@@ -337,5 +340,9 @@ function formatDuration(seconds) {
 }
 
 // Poll for updates every 5 seconds
+setInterval(loadPublicData, 5000);
+
+// Initial Load
+loadPublicData();
 loadPublicData();
 setInterval(loadPublicData, 5000);
