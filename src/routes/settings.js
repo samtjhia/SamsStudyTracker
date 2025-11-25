@@ -10,14 +10,15 @@ router.get('/settings', authenticateToken, async (req, res) => {
     try {
         // Select dailyEmailTime
         const userResult = await db.query(
-            `SELECT dailyTargetMin, dailyEmailTime, username FROM users WHERE id = $1`,
+            `SELECT dailyTargetMin, dailyEmailTime, username, emailServicePaused FROM users WHERE id = $1`,
             [userId]
         );
         const row = userResult.rows[0];
         const user = {
             dailyTargetMin: row.dailytargetmin,
             dailyEmailTime: row.dailyemailtime,
-            username: row.username
+            username: row.username,
+            emailServicePaused: row.emailservicepaused === 1
         };
 
         const emailsResult = await db.query(
@@ -33,13 +34,13 @@ router.get('/settings', authenticateToken, async (req, res) => {
 
 // Update Settings
 router.post('/settings', authenticateToken, async (req, res) => {
-    const { dailyTargetMin, dailyEmailTime, username } = req.body;
+    const { dailyTargetMin, dailyEmailTime, username, emailServicePaused } = req.body;
     const userId = req.user.id;
 
     try {
         await db.query(
-            `UPDATE users SET dailyTargetMin = $1, dailyEmailTime = $2, username = $3 WHERE id = $4`,
-            [dailyTargetMin, dailyEmailTime, username, userId]
+            `UPDATE users SET dailyTargetMin = $1, dailyEmailTime = $2, username = $3, emailServicePaused = $4 WHERE id = $5`,
+            [dailyTargetMin, dailyEmailTime, username, emailServicePaused ? 1 : 0, userId]
         );
         res.json({ message: 'Settings updated' });
     } catch (err) {

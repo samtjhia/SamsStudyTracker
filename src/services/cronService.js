@@ -14,7 +14,8 @@ const startCron = () => {
         console.log(`[Cron] Checking schedule for time: ${currentTime}`);
 
         try {
-            const result = await db.query(`SELECT * FROM users WHERE dailyEmailTime = $1`, [currentTime]);
+            // Only select users who have NOT paused the email service
+            const result = await db.query(`SELECT * FROM users WHERE dailyEmailTime = $1 AND (emailServicePaused IS NULL OR emailServicePaused = 0)`, [currentTime]);
             const users = result.rows;
 
             if (users.length > 0) {

@@ -41,6 +41,7 @@ const initDb = async () => {
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS currentIsPaused INTEGER DEFAULT 0`);
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS currentPausedDuration BIGINT`);
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT`);
+            await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS emailServicePaused INTEGER DEFAULT 0`);
         } catch (e) {
             // Ignore error if column exists or other minor issue
             console.log('Migration note: column check');

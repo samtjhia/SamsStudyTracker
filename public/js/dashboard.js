@@ -619,6 +619,12 @@ settingsBtn.addEventListener('click', async () => {
         const hour = data.dailyEmailHour || 20;
         document.getElementById('setting-time').value = `${hour.toString().padStart(2, '0')}:00`;
     }
+
+    // Set pause email checkbox
+    const pauseEmailCheckbox = document.getElementById('admin-pause-emails');
+    if (pauseEmailCheckbox) {
+        pauseEmailCheckbox.checked = data.emailServicePaused || false;
+    }
     
     renderEmailList(data.accountabilityEmails);
     settingsModal.classList.remove('hidden');
@@ -640,11 +646,12 @@ saveSettingsBtn.addEventListener('click', async () => {
     const dailyTargetMin = document.getElementById('setting-target').value;
     const dailyEmailTime = document.getElementById('setting-time').value;
     const username = document.getElementById('setting-username').value;
+    const emailServicePaused = document.getElementById('admin-pause-emails').checked;
 
     await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dailyTargetMin, dailyEmailTime, username })
+        body: JSON.stringify({ dailyTargetMin, dailyEmailTime, username, emailServicePaused })
     });
 
     settingsModal.classList.add('hidden');
