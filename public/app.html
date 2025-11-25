@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sam's Study Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-900 dark:bg-gray-900 dark:text-white">
+
+    <!-- Auth View -->
+    <div id="auth-view" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded shadow-md w-full max-w-md dark:bg-gray-800">
+            <h1 class="text-2xl font-bold mb-6 text-center">Sam's Study Tracker</h1>
+            
+            <div id="login-form">
+                <h2 class="text-xl mb-4">Login</h2>
+                <input type="email" id="login-email" placeholder="Email" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="password" id="login-password" placeholder="Password" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <button id="login-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+                <p class="mt-4 text-center text-sm">Don't have an account? <a href="#" id="show-signup" class="text-blue-500 dark:text-blue-400">Sign up</a></p>
+                <p class="mt-2 text-center text-sm"><a href="/" class="text-green-500 hover:text-green-600 font-bold">Back to Public Dashboard</a></p>
+            </div>
+
+            <div id="signup-form" class="hidden">
+                <h2 class="text-xl mb-4">Sign Up</h2>
+                <input type="email" id="signup-email" placeholder="Email" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="password" id="signup-password" placeholder="Password" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="password" id="signup-secret" placeholder="Secret Code" class="w-full p-2 mb-4 border rounded border-red-300 dark:bg-gray-700 dark:border-red-900 dark:text-white">
+                <button id="signup-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Sign Up</button>
+                <p class="mt-4 text-center text-sm">Already have an account? <a href="#" id="show-login" class="text-blue-500 dark:text-blue-400">Login</a></p>
+            </div>
+            <p id="auth-error" class="text-red-500 mt-2 text-center hidden"></p>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="hidden">
+        <nav class="bg-white shadow p-4 flex justify-between items-center dark:bg-gray-800">
+            <h1 class="text-xl font-bold">Sam's Study Tracker</h1>
+            <div class="flex items-center gap-4">
+                <a href="/history" class="text-blue-500 font-semibold hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300" title="History">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                    </svg>
+                </a>
+                <button id="settings-btn" class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white" title="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+                <button id="logout-btn" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" title="Logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-4 max-w-4xl">
+            
+            <!-- Timer Section -->
+            <div class="bg-white p-6 rounded shadow mb-6 text-center dark:bg-gray-800">
+                <div id="timer-display" class="text-6xl font-mono mb-6">00:00:00</div>
+                <input type="text" id="study-topic" placeholder="What are you studying?" class="w-full max-w-md p-2 border rounded mb-4 mx-auto block text-center dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                
+                <div class="flex items-center justify-center mb-4">
+                    <input type="checkbox" id="is-private-session" class="mr-2 w-4 h-4">
+                    <label for="is-private-session" class="text-sm text-gray-600 dark:text-gray-400">Private Session (Hide topic on public dashboard)</label>
+                </div>
+
+                <div class="space-x-4 flex justify-center">
+                    <button id="start-timer-btn" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 flex items-center gap-2" title="Start Timer">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                        </svg>
+                        <span>Start</span>
+                    </button>
+                    <button id="pause-timer-btn" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 hidden flex items-center gap-2" title="Pause">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                        </svg>
+                        <span>Pause</span>
+                    </button>
+                    <button id="stop-timer-btn" class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 hidden flex items-center gap-2" title="Stop & Log">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
+                        </svg>
+                        <span>Stop</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats & Today's Sessions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Stats -->
+                <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
+                    <h2 class="text-lg font-bold mb-4">Today's Stats</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-4 rounded dark:bg-blue-900">
+                            <p class="text-sm text-gray-500 dark:text-gray-300">Total Time</p>
+                            <p id="stat-total-time" class="text-2xl font-bold">0h 0m 0s</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded dark:bg-purple-900">
+                            <p class="text-sm text-gray-500 dark:text-gray-300">Sessions</p>
+                            <p id="stat-session-count" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session List -->
+                <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
+                    <h2 class="text-lg font-bold mb-4">Today's Sessions</h2>
+                    <ul id="session-list" class="space-y-2 max-h-64 overflow-y-auto">
+                        <!-- Sessions injected here -->
+                        <li class="text-gray-500 text-center italic">No sessions yet today.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
+                    <h2 class="text-lg font-bold mb-4">Daily Progress (Today)</h2>
+                    <canvas id="dailyChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
+                    <h2 class="text-lg font-bold mb-4">Weekly Progress (Mon-Sun)</h2>
+                    <canvas id="weeklyChart" class="mb-6"></canvas>
+                    <h3 class="text-md font-semibold mb-2 text-gray-600 dark:text-gray-400">Top Topics This Week</h3>
+                    <canvas id="weeklyTopicChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-6 rounded shadow-lg w-full max-w-md dark:bg-gray-800">
+            <h2 class="text-xl font-bold mb-4">Settings</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Display Name (for Emails)</label>
+                <input type="text" id="setting-username" placeholder="e.g. Sam" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Daily Target (minutes)</label>
+                <input type="number" id="setting-target" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Daily Email Time</label>
+                <input type="time" id="setting-time" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Accountability Emails</label>
+                <ul id="email-list" class="mb-2 space-y-1"></ul>
+                <div class="flex">
+                    <input type="email" id="new-email-input" placeholder="Add email" class="flex-1 p-2 border rounded-l dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <button id="add-email-btn" class="bg-blue-500 text-white px-4 rounded-r hover:bg-blue-600" title="Add Email">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Section (Hidden by default) -->
+            <div id="admin-section" class="hidden border-t pt-4 mt-4 dark:border-gray-700">
+                <h3 class="font-bold text-red-600 mb-2 dark:text-red-400">Admin: Manage Users</h3>
+                
+                <div class="mb-4 flex items-center">
+                    <input type="checkbox" id="admin-delete-mode" class="mr-2">
+                    <label for="admin-delete-mode" class="text-sm text-gray-700 dark:text-gray-300">Enable Session Deletion (Dashboard)</label>
+                </div>
+
+                <ul id="admin-user-list" class="space-y-2 max-h-40 overflow-y-auto text-sm"></ul>
+            </div>
+
+            <div class="flex justify-end space-x-2 mt-6">
+                <button id="close-settings-btn" class="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">Close</button>
+                <button id="save-settings-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
