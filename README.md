@@ -2,22 +2,24 @@
 
 A full-stack web application designed to track study sessions, visualize progress, and send automated daily email reports. Built with Node.js, Express, PostgreSQL, and Vanilla JS.
 
-## 🚀 Features
+## Features
 
 - **Real-time Study Timer**: Start, pause, and stop study sessions with topic tracking.
 - **Visual Analytics**:
   - Weekly progress bar charts.
   - "Most Studied Topics" horizontal bar charts.
   - Detailed history calendar with daily breakdowns.
+  - **Dynamic Status Images**: Shows a "Pirate Writing" animation when studying and a "Snorlax" when offline.
 - **Automated Email Reports**:
   - Configurable daily email time.
   - Sends a summary of the day's sessions and total study time.
   - "Hype" or "Disappointment" messages based on whether the daily goal was met.
+  - **Resend Integration**: Reliable email delivery using the Resend API.
 - **Public Dashboard**: A read-only view to share your progress with others.
 - **Admin Panel**: Manage settings, view all sessions, and configure email preferences.
 - **Dark Mode**: Fully supported UI with automatic theme detection.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Node.js, Express.js
 - **Database**: PostgreSQL
@@ -26,15 +28,15 @@ A full-stack web application designed to track study sessions, visualize progres
 - **Authentication**: JWT (JSON Web Tokens) & bcrypt
 - **Services**:
   - `node-cron`: For scheduling daily email checks.
-  - `nodemailer`: For sending email reports via Gmail.
+  - `resend`: For reliable transactional emails.
 
-## 📋 Prerequisites
+## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18+)
 - [PostgreSQL](https://www.postgresql.org/)
-- A Gmail account (for sending emails) with an [App Password](https://support.google.com/accounts/answer/185833).
+- A [Resend](https://resend.com) account and a verified domain.
 
-## ⚙️ Installation & Setup
+## Installation & Setup
 
 1.  **Clone the repository**
     ```bash
@@ -63,9 +65,8 @@ A full-stack web application designed to track study sessions, visualize progres
     SIGNUP_SECRET=your_secret_signup_code  # Required to create an account
     ALLOWED_EMAIL=your_email@example.com   # Grants admin/public dashboard access
 
-    # Email Service (Gmail)
-    EMAIL_USER=your_email@gmail.com
-    EMAIL_PASS=your_gmail_app_password
+    # Email Service (Resend)
+    RESEND_API_KEY=re_123456789
     ```
 
 4.  **Database Setup**
@@ -85,7 +86,7 @@ A full-stack web application designed to track study sessions, visualize progres
 6.  **Access the App**
     Open `http://localhost:3000` in your browser.
 
-## 🚀 Deployment (Render)
+## Deployment (Render)
 
 This project is configured for deployment on [Render](https://render.com/).
 
@@ -95,8 +96,9 @@ This project is configured for deployment on [Render](https://render.com/).
 4.  **Start Command**: `npm start`
 5.  **Environment Variables**: Add all variables from your `.env` file (except `PORT`).
     *   For `DATABASE_URL`, use the Internal Connection URL from your Render Postgres database or your external provider (e.g., Supabase, Neon).
+    *   Set `TZ` to your timezone (e.g., `America/Toronto`) to ensure emails send at the correct local time.
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 ├── public/             # Static frontend files
@@ -114,6 +116,6 @@ This project is configured for deployment on [Render](https://render.com/).
 └── Dockerfile          # Docker configuration
 ```
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
