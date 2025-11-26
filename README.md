@@ -9,7 +9,7 @@ A full-stack web application designed to track study sessions, visualize progres
   - Weekly progress bar charts.
   - "Most Studied Topics" horizontal bar charts.
   - Detailed history calendar with daily breakdowns.
-  - **Dynamic Status Images**: Shows a "Pirate Writing" animation when studying and a "Snorlax" when offline.
+  - **Dynamic Status Images**: Shows a "Usopp Writing" animation when studying and a "Snorlax" when offline.
 - **Automated Email Reports**:
   - Configurable daily email time.
   - Sends a summary of the day's sessions and total study time.
@@ -115,7 +115,3 @@ This project is configured for deployment on [Render](https://render.com/).
 ├── server.js           # Entry point
 └── Dockerfile          # Docker configuration
 ```
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
