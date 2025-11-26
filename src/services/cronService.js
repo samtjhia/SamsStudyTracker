@@ -2,6 +2,8 @@ const cron = require('node-cron');
 const db = require('../db/database');
 const { sendEmail, generateEmailContent } = require('./emailService');
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const startCron = () => {
     // Run every minute
     cron.schedule('* * * * *', async () => {
@@ -90,7 +92,9 @@ const generateAndSendReport = async (user) => {
             
             if (updateResult.rowCount > 0) {
                 // We claimed this email! Send it.
-                sendEmail(emailObj.email, subject, emailHtml);
+                await sendEmail(emailObj.email, subject, emailHtml);
+                // Rate limit: 1 email per second
+                await sleep(1000);
             } else {
                 console.log(`Skipping email to ${emailObj.email}: Already sent today.`);
             }
