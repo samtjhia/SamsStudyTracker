@@ -135,9 +135,24 @@ router.post('/logout', (req, res) => {
 });
 
 // Check Auth Status (helper for frontend)
-router.get('/me', authenticateToken, (req, res) => {
-    const isAdmin = process.env.ALLOWED_EMAIL && req.user.email === process.env.ALLOWED_EMAIL;
-    res.json({ authenticated: true, user: req.user, isAdmin });
+router.get('/me', authenticateToken, async (req, res) => {
+    try {
+        // Fetch fresh user data from DB to ensure username/settings are up to date
+        // (The JWT might be stale or missing fields like username)
+        const result = await db.query('SELECT id, email, username, supabase_uid, created_at FROM users WHERE id = $1', [req.user.id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ authenticated: false });
+        }
+        
+        const user = result.rows[0];
+        const isAdmin = process.env.ALLOWED_EMAIL && user.email === process.env.ALLOWED_EMAIL;
+        
+        res.json({ authenticated: true, user, isAdmin });
+    } catch (err) {
+        console.error('Error in /me:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;

@@ -84,55 +84,77 @@ let currentUser = null;
 })();
 
 function updateUIForAuth() {
-    const navContainer = document.querySelector('nav div.flex');
-    navContainer.classList.add('items-center'); // Ensure vertical alignment
+    const navRight = document.querySelector('nav > div.relative');
     
-    if (isAuthenticated) {
-        const displayName = currentUser ? (currentUser.username || currentUser.email) : 'User';
-        // Show Dashboard, History, Logout
-        navContainer.innerHTML = `
-            <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 hidden md:block mr-2">Hi, ${displayName}</span>
-            <a href="/app" class="text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400" title="Dashboard">
+    if (isAuthenticated && currentUser) {
+        // Restore/Ensure Dropdown UI is present if it was replaced
+        if (!document.getElementById('profile-menu-btn')) {
+            navRight.innerHTML = `
+                <button id="profile-menu-btn" class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full">
+                    <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                        <span id="profile-initial"></span>
+                    </div>
+                </button>
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden text-left z-50 origin-top-right">
+                    <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                        <p id="dropdown-name" class="text-sm font-bold text-gray-900 dark:text-white truncate">User</p>
+                        <p id="dropdown-email" class="text-xs text-gray-500 dark:text-gray-400 truncate">user@example.com</p>
+                    </div>
+                    <div class="py-1">
+                        <button id="settings-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Settings
+                        </button>
+                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Re-initialize logic from main.js if needed or manually attach here
+            // Since main.js runs strictly on DOMContentLoaded, we need to manually re-attach listeners for this dynamic content
+            const btn = document.getElementById('profile-menu-btn');
+            const drop = document.getElementById('profile-dropdown');
+            const logout = document.getElementById('logout-btn-dropdown');
+            const settings = document.getElementById('settings-btn');
+            
+            btn.addEventListener('click', (e) => { e.stopPropagation(); drop.classList.toggle('hidden'); });
+            document.addEventListener('click', (e) => {
+                if (!drop.classList.contains('hidden') && !drop.contains(e.target) && !btn.contains(e.target)) drop.classList.add('hidden');
+            });
+            logout.addEventListener('click', async () => {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/app';
+            });
+            if (settings) {
+                // Since Settings Logic is in history.js (oops, settings logic is actually in dashboard.js usually)
+                // history.js doesn't have the Settings Modal logic! The Setting Modal is on dashboard.js. 
+                // We should redirect to dashboard with ?settings=open or just link to dashboard.
+                settings.addEventListener('click', () => {
+                    window.location.href = '/app?settings=open'; 
+                });
+            }
+        }
 
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-            </a>
-            <a href="/history" class="text-blue-500 font-bold dark:text-blue-400" title="History">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-            </a>
-            <button id="logout-btn" class="text-red-500 hover:text-red-700" title="Logout">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                </svg>
-            </button>
-        `;
-        // Re-attach logout listener
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            await fetch('/api/logout', { method: 'POST' });
-            window.location.href = '/app';
-        });
+        if (window.updateProfileUI) {
+            window.updateProfileUI(currentUser);
+        }
     } else {
-        // Show Public Home, History, Login
-        navContainer.innerHTML = `
-            <a href="/" class="text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400" title="Home">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-            </a>
-            <a href="/history" class="text-blue-500 font-bold dark:text-blue-400" title="History">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-            </a>
-            <a href="/app" class="text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 font-semibold" title="Login">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                </svg>
-            </a>
-        `;
+        // Show Login Button
+        if (navRight) {
+            navRight.innerHTML = `
+                <a href="/app" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold text-sm shadow transition-colors">
+                    Login / Dashboard
+                </a>
+            `;
+        }
     }
 }
 

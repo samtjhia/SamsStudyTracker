@@ -12,10 +12,65 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-900 dark:bg-gray-900 dark:text-white">
 
-    <nav class="bg-white shadow p-4 flex justify-between items-center dark:bg-gray-800">
-        <h1 class="text-xl font-bold">Sam's Study History</h1>
-        <div class="flex gap-4">
-            <!-- Links injected by JS -->
+    <nav class="flex justify-between items-center bg-white px-6 py-3 shadow dark:bg-gray-800 dark:border-b dark:border-gray-700 relative z-40">
+        <!-- Left: Brand + Tabs -->
+        <div class="flex items-center space-x-8">
+            <div class="flex items-center">
+                <img src="/images/piratewriting.png" class="h-8 w-8 mr-3 rounded-full border border-gray-200 dark:border-gray-600" alt="Logo">
+                <h1 class="text-xl font-bold hidden sm:block">Study Tracker</h1>
+            </div>
+            
+            <!-- Main Tabs (Desktop) -->
+            <div class="hidden md:flex space-x-1 bg-gray-100 p-1 rounded-lg dark:bg-gray-700">
+                <a href="/app" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-gray-500 hover:text-gray-700 hover:bg-gray-200/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-600">
+                    Dashboard
+                </a>
+                <a href="/history" class="px-4 py-1.5 rounded-md text-sm font-medium transition-all shadow bg-white text-blue-600 dark:bg-gray-600 dark:text-white">
+                    Calendar
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Profile Dropdown -->
+        <div class="relative">
+            <button id="profile-menu-btn" class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full">
+                <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                    <span id="profile-initial">U</span>
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700 overflow-hidden text-left z-50 origin-top-right transform transition-all duration-200 ease-out">
+                <!-- User Info Header -->
+                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                    <p id="dropdown-name" class="text-sm font-bold text-gray-900 dark:text-white truncate">User</p>
+                    <p id="dropdown-email" class="text-xs text-gray-500 dark:text-gray-400 truncate">user@example.com</p>
+                </div>
+                
+                <!-- Menu Items -->
+                <div class="py-1">
+                    <!-- Mobile Tabs -->
+                    <a href="/app" class="md:hidden flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="/history" class="md:hidden flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Calendar
+                    </a>
+                    
+                    <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -79,6 +134,7 @@
 
     </div>
 
+    <script src="/js/main.js"></script>
     <script src="/js/history.js"></script>
 </body>
 </html>
