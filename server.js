@@ -45,6 +45,12 @@ app.get('/history', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
 
+// Settings Logic (Moved from routes/settings.js to clarify context)
+app.get('/settings', (req, res) => {
+    // This is just serving HTML if you had one, but we use a modal.
+    res.redirect('/app');
+});
+
 // Initialize DB and start server
 initDb().then(() => {
     app.listen(PORT, () => {

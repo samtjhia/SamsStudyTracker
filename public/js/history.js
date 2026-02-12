@@ -11,18 +11,73 @@ const logoutBtn = document.getElementById('logout-btn');
 let currentDate = new Date();
 let sessionsCache = [];
 let isAuthenticated = false;
+let currentUser = null;
 
-// Check Auth on Load
-(async function checkAuth() {
+// Initialize Supabase & Check Auth on Load
+(async function init() {
     try {
+        // 1. Load Config
+        const configRes = await fetch('/api/auth/config');
+        const config = await configRes.json();
+
+        if (config.supabaseUrl && config.supabaseAnonKey) {
+            const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+            // 2. Setup Auth Listener (Prevents random logouts when switching pages)
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    // Sync backend cookie if needed
+                    if (session) {
+                        try {
+                            const syncRes = await fetch('/api/auth/login-sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ access_token: session.access_token })
+                            });
+                            
+                            if (syncRes.ok) {
+                                const syncData = await syncRes.json();
+                                const wasAuthenticated = isAuthenticated;
+                                isAuthenticated = true;
+                                if (syncData.user) currentUser = syncData.user;
+                                updateUIForAuth();
+                                
+                                // FORCE RE-RENDER if we just logged in (to switch from Public -> Private data)
+                                if (!wasAuthenticated) {
+                                    renderCalendar();
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Sync failed', e);
+                        }
+                    }
+                } else if (event === 'SIGNED_OUT') {
+                    const wasAuthenticated = isAuthenticated;
+                    isAuthenticated = false;
+                    currentUser = null;
+                    updateUIForAuth();
+                    
+                    if (wasAuthenticated) {
+                        renderCalendar(); // Switch back to public view
+                    }
+                }
+            });
+        }
+
+        // 3. Check Backend Cookie (Source of Truth for Data)
         const res = await fetch('/api/me');
         const data = await res.json();
         isAuthenticated = data.authenticated;
-        
+        if (isAuthenticated) {
+            currentUser = data.user;
+        }
+
         updateUIForAuth();
         renderCalendar();
     } catch (err) {
+        console.error('History Init Error:', err);
         isAuthenticated = false;
+        currentUser = null;
         updateUIForAuth();
         renderCalendar();
     }
@@ -33,9 +88,12 @@ function updateUIForAuth() {
     navContainer.classList.add('items-center'); // Ensure vertical alignment
     
     if (isAuthenticated) {
+        const displayName = currentUser ? (currentUser.username || currentUser.email) : 'User';
         // Show Dashboard, History, Logout
         navContainer.innerHTML = `
+            <span class="text-sm font-semibold text-gray-600 dark:text-gray-300 hidden md:block mr-2">Hi, ${displayName}</span>
             <a href="/app" class="text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400" title="Dashboard">
+
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                 </svg>

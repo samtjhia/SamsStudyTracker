@@ -142,11 +142,12 @@ if (showLoginBtn) {
                         if (authError) authError.classList.add('hidden');
                     } else if (res.ok) {
                         // All good
-                        if (window.showDashboard) {
+                        if (typeof window.showDashboard === 'function') {
                             window.showDashboard();
                         } else {
-                            // If showDashboard isn't defined yet (loading race), reload
-                            window.location.reload();
+                            // If showDashboard isn't defined yet, main.js will handle the initial load.
+                            // Do NOT reload, as it causes infinite loops if script loading order varies.
+                            console.log('Auth synced. Waiting for main app to initialize.');
                         }
                     } else {
                         showError(data.error || 'Login failed');

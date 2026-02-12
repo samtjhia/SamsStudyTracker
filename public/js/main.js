@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (data.authenticated) {
             showDashboard();
+            // Show User Name
+            const profileName = data.user.username || data.user.email;
+            const navNameEl = document.getElementById('nav-user-name');
+            if (navNameEl) navNameEl.textContent = `Hi, ${profileName}`;
         } else {
             showAuth();
         }

@@ -41,8 +41,23 @@ router.post('/auth/login-sync', async (req, res) => {
         if (error || !user) return res.status(401).json({ error: 'Invalid Supabase token' });
 
         // Check if user exists in our DB
-        const result = await db.query('SELECT * FROM users WHERE supabase_uid = $1', [user.id]);
+        let result = await db.query('SELECT * FROM users WHERE supabase_uid = $1', [user.id]);
         
+        // If not found by ID, try to find by EMAIL (Migrate legacy users)
+        if (result.rows.length === 0 && user.email) {
+            const emailMatch = await db.query('SELECT * FROM users WHERE email = $1', [user.email]);
+            if (emailMatch.rows.length > 0) {
+                // Determine username: use existing, or fall back to email prefix
+                // Update the user to link their Supabase UUID
+                // We use RETURNING * to populate 'result' so the login flow continues seamlessly
+                result = await db.query(
+                    'UPDATE users SET supabase_uid = $1 WHERE email = $2 RETURNING *',
+                    [user.id, user.email]
+                );
+                console.log(`Auto-linked legacy user: ${user.email}`);
+            }
+        }
+
         if (result.rows.length > 0) {
             // User exists! create session
             issueSessionCookie(res, result.rows[0]);

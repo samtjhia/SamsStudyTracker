@@ -623,10 +623,12 @@ settingsBtn.addEventListener('click', async () => {
     // Set pause email checkbox
     const pauseEmailCheckbox = document.getElementById('admin-pause-emails');
     if (pauseEmailCheckbox) {
-        pauseEmailCheckbox.checked = data.emailServicePaused || false;
+        // Ensure legacy true/1/false/0 are handled
+        pauseEmailCheckbox.checked = !!data.emailServicePaused;
     }
     
-    renderEmailList(data.accountabilityEmails);
+    // Ensure array exists
+    renderEmailList(data.accountabilityEmails || []);
     settingsModal.classList.remove('hidden');
     
     // Check admin status when opening settings
