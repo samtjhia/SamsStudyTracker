@@ -92,7 +92,7 @@ const generateAndSendReport = async (user) => {
             
             if (updateResult.rowCount > 0) {
                 // We claimed this email! Send it.
-                await sendEmail(emailObj.email, subject, emailHtml);
+                await sendEmail(emailObj.email, subject, emailHtml, displayName);
                 // Rate limit: 1 email per second
                 await sleep(1000);
             } else {

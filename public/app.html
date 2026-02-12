@@ -6,6 +6,7 @@
     <title>Sam's Study Tracker</title>
     <link rel="icon" type="image/png" href="/images/piratewriting.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .hidden { display: none; }
     </style>
@@ -17,23 +18,50 @@
         <div class="bg-white p-8 rounded shadow-md w-full max-w-md dark:bg-gray-800">
             <h1 class="text-2xl font-bold mb-6 text-center">Sam's Study Tracker</h1>
             
+            <!-- Login -->
             <div id="login-form">
-                <h2 class="text-xl mb-4">Login</h2>
+                <button id="google-login-btn" class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 mb-4 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.333.533 12S5.867 24 12.48 24c3.44 0 6.013-1.147 8.027-3.24 2.053-2.053 2.72-5.133 2.72-7.84 0-.773-.08-1.52-.2-2H12.48z"/></svg>
+                    Sign in with Google
+                </button>
+                
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-400">Or with email</span>
+                    </div>
+                </div>
+
                 <input type="email" id="login-email" placeholder="Email" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <input type="password" id="login-password" placeholder="Password" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <button id="login-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+                <button id="email-login-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
                 <p class="mt-4 text-center text-sm">Don't have an account? <a href="#" id="show-signup" class="text-blue-500 dark:text-blue-400">Sign up</a></p>
                 <p class="mt-2 text-center text-sm"><a href="/" class="text-green-500 hover:text-green-600 font-bold">Back to Public Dashboard</a></p>
             </div>
 
+            <!-- Signup -->
             <div id="signup-form" class="hidden">
                 <h2 class="text-xl mb-4">Sign Up</h2>
                 <input type="email" id="signup-email" placeholder="Email" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <input type="password" id="signup-password" placeholder="Password" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <input type="password" id="signup-secret" placeholder="Secret Code" class="w-full p-2 mb-4 border rounded border-red-300 dark:bg-gray-700 dark:border-red-900 dark:text-white">
-                <button id="signup-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Sign Up</button>
+                <button id="email-signup-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Sign Up</button>
                 <p class="mt-4 text-center text-sm">Already have an account? <a href="#" id="show-login" class="text-blue-500 dark:text-blue-400">Login</a></p>
             </div>
+
+            <!-- Complete Registration Gate -->
+            <div id="register-gate-form" class="hidden">
+                <h2 class="text-xl mb-4 text-red-500 font-bold">Complete Registration</h2>
+                <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">Welcome! Please enter your username and the Secret Access Code to finish setting up your account.</p>
+                
+                <input type="text" id="reg-username" placeholder="Choose a Username" class="w-full p-2 mb-4 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="password" id="reg-secret" placeholder="Secret Access Code" class="w-full p-2 mb-4 border rounded border-red-300 dark:bg-gray-700 dark:border-red-900 dark:text-white">
+                
+                <button id="complete-reg-btn" class="w-full bg-red-600 text-white p-2 rounded hover:bg-red-700 font-bold">Unlock Access</button>
+                <p class="mt-4 text-center text-sm"><a href="/app" class="text-gray-500 hover:underline">Cancel</a></p>
+            </div>
+
             <p id="auth-error" class="text-red-500 mt-2 text-center hidden"></p>
         </div>
     </div>

@@ -1,72 +1,114 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../db/database');
+const supabase = require('../db/supabaseClient');
+const authenticateToken = require('../middleware/authMiddleware');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 
-// Signup
-router.post('/signup', async (req, res) => {
-    const { email, password, signupSecret } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+// Internal helper to issue session cookie
+const issueSessionCookie = (res, user) => {
+    // We sign a JWT with our internal user ID for valid sessions
+    // This keeps the rest of the app working with "req.user.id" as an integer
+    const token = jwt.sign({ 
+        id: user.id, 
+        email: user.email, 
+        supabaseUid: user.supabase_uid 
+    }, SECRET_KEY, { expiresIn: '24h' });
+    
+    res.cookie('token', token, { httpOnly: true });
+};
 
-    // 1. Check Secret Code (MANDATORY)
-    // If the server admin forgot to set a secret, we BLOCK signups for safety.
-    if (!process.env.SIGNUP_SECRET) {
-        console.error('SECURITY ALERT: SIGNUP_SECRET is missing in .env file. Blocking signup.');
-        return res.status(500).json({ error: 'Signup is disabled: Server configuration error.' });
-    }
+// Publish Supabase Config for Frontend
+router.get('/auth/config', (req, res) => {
+    res.json({
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+    });
+});
 
-    if (signupSecret !== process.env.SIGNUP_SECRET) {
-        return res.status(403).json({ error: 'Invalid signup secret code.' });
-    }
-
-    // 2. Check Allowed Email (Optional double-check)
-    if (process.env.ALLOWED_EMAIL && email !== process.env.ALLOWED_EMAIL) {
-        return res.status(403).json({ error: 'Signup is restricted to authorized users only.' });
-    }
+// 1. Sync Logic: Frontend sends Supabase Session -> Backend checks if user exists
+router.post('/auth/login-sync', async (req, res) => {
+    const { access_token } = req.body;
+    
+    if (!access_token) return res.status(400).json({ error: 'No access token provided' });
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await db.query(`INSERT INTO users (email, passwordHash) VALUES ($1, $2) RETURNING id`, [email, hashedPassword]);
-        const userId = result.rows[0].id;
+        // Verify with Supabase
+        const { data: { user }, error } = await supabase.auth.getUser(access_token);
         
-        const token = jwt.sign({ id: userId, email }, SECRET_KEY, { expiresIn: '24h' });
-        res.cookie('token', token, { httpOnly: true });
-        res.status(201).json({ message: 'User created', userId });
-    } catch (err) {
-        if (err.code === '23505') { // Unique violation
-             return res.status(400).json({ error: 'Email already exists' });
+        if (error || !user) return res.status(401).json({ error: 'Invalid Supabase token' });
+
+        // Check if user exists in our DB
+        const result = await db.query('SELECT * FROM users WHERE supabase_uid = $1', [user.id]);
+        
+        if (result.rows.length > 0) {
+            // User exists! create session
+            issueSessionCookie(res, result.rows[0]);
+            return res.json({ status: 'connected', user: result.rows[0] });
+        } else {
+            // User authenticated with Google/Email but NOT in our DB
+            // Tell frontend to show "Complete Registration" screen
+            return res.status(404).json({ 
+                status: 'unregistered', 
+                email: user.email,
+                supabaseUid: user.id 
+            });
         }
+
+    } catch (err) {
+        console.error('Login sync error:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Login
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-    
-    try {
-        const result = await db.query(`SELECT * FROM users WHERE email = $1`, [email]);
-        const user = result.rows[0];
-        
-        if (!user) return res.status(400).json({ error: 'User not found' });
+// 2. Registration: "The Gatekeeper"
+router.post('/auth/register', async (req, res) => {
+    const { access_token, username, signupSecret } = req.body;
 
-        // Postgres returns lowercase column names by default
-        const storedHash = user.passwordhash || user.passwordHash;
-        if (!storedHash) {
-            console.error('Login Error: Password hash not found in user record', user);
-            return res.status(500).json({ error: 'Account error. Please contact admin.' });
+    // Security Check
+    if (!process.env.SIGNUP_SECRET) return res.status(500).json({ error: 'Server misconfiguration.' });
+    if (signupSecret !== process.env.SIGNUP_SECRET) {
+        return res.status(403).json({ error: 'Invalid Signup Secret Code.' });
+    }
+
+    try {
+        // Verify token again to be sure
+        const { data: { user }, error } = await supabase.auth.getUser(access_token);
+        if (error || !user) return res.status(401).json({ error: 'Session expired. Please login again.' });
+
+        // Insert into DB
+        // User might already exist by email (if they used the old system). 
+        // We should try to update them or insert new.
+        
+        // Check for existing email match first
+        const existing = await db.query('SELECT * FROM users WHERE email = $1', [user.email]);
+        
+        let localUser;
+        if (existing.rows.length > 0) {
+            // Link existing legacy user to Supabase
+            const update = await db.query(
+                `UPDATE users SET supabase_uid = $1, username = COALESCE(username, $2) WHERE email = $3 RETURNING *`, 
+                [user.id, username, user.email]
+            );
+            localUser = update.rows[0];
+        } else {
+            // Create brand new user
+            const insert = await db.query(
+                `INSERT INTO users (email, supabase_uid, username) VALUES ($1, $2, $3) RETURNING *`,
+                [user.email, user.id, username]
+            );
+            localUser = insert.rows[0];
         }
 
-        const validPassword = await bcrypt.compare(password, storedHash);
-        if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
+        issueSessionCookie(res, localUser);
+        res.status(201).json({ status: 'registered', user: localUser });
 
-        const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-        res.cookie('token', token, { httpOnly: true });
-        res.json({ message: 'Logged in' });
     } catch (err) {
+        if (err.code === '23505') { // Unique violation
+             return res.status(400).json({ error: 'User already registered.' });
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -78,16 +120,9 @@ router.post('/logout', (req, res) => {
 });
 
 // Check Auth Status (helper for frontend)
-router.get('/me', (req, res) => {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ authenticated: false });
-
-    jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) return res.status(403).json({ authenticated: false });
-        
-        const isAdmin = process.env.ALLOWED_EMAIL && user.email === process.env.ALLOWED_EMAIL;
-        res.json({ authenticated: true, user, isAdmin });
-    });
+router.get('/me', authenticateToken, (req, res) => {
+    const isAdmin = process.env.ALLOWED_EMAIL && req.user.email === process.env.ALLOWED_EMAIL;
+    res.json({ authenticated: true, user: req.user, isAdmin });
 });
 
 module.exports = router;

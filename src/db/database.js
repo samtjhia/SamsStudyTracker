@@ -42,6 +42,8 @@ const initDb = async () => {
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS currentPausedDuration BIGINT`);
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT`);
             await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS emailServicePaused INTEGER DEFAULT 0`);
+            // Add Supabase UID column for linking Supabase Auth users to our local users table
+            await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS supabase_uid UUID UNIQUE`);
         } catch (e) {
             // Ignore error if column exists or other minor issue
             console.log('Migration note: column check');

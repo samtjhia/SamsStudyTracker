@@ -2,12 +2,12 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const sendEmail = async (to, subject, html) => {
+const sendEmail = async (to, subject, html, fromName = 'StudyTracker') => {
     try {
         console.log(`Attempting to send email to ${to} with subject: ${subject}`);
         
         const { data, error } = await resend.emails.send({
-            from: 'Did Sam study today? <updates@samstudy.live>',
+            from: `${fromName} <updates@samstudy.live>`,
             to: to,
             subject: subject,
             html: html
