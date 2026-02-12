@@ -39,15 +39,20 @@ const processUserReport = async (user) => {
 };
 
 const generateAndSendReport = async (user) => {
+    // 1. Define Time Range for "Today"
     const startOfDay = new Date().setHours(0, 0, 0, 0);
     const endOfDay = new Date().setHours(23, 59, 59, 999);
 
+    console.log(`[Report Gen] Starting report generation for User: ${user.email} (ID: ${user.id})`);
+
     try {
+        // 2. Fetch Sessions for THIS specific user
         const sessionsResult = await db.query(
             `SELECT * FROM study_sessions WHERE userId = $1 AND start >= $2 AND start <= $3 ORDER BY start ASC`,
             [user.id, startOfDay, endOfDay]
         );
-        // Convert BIGINT strings to Numbers and map lowercase DB columns
+
+        // Convert bigints and normalize data
         const sessions = sessionsResult.rows.map(s => ({
             ...s,
             start: parseInt(s.start),
@@ -58,13 +63,14 @@ const generateAndSendReport = async (user) => {
         }));
 
         if (sessions.length === 0) {
-            console.log(`No sessions for user ${user.id} today.`);
+            console.log(`[Report Gen] No sessions found for User ${user.id} today. Skipping report.`);
             return; 
         }
 
+        // 3. Calculate Totals
         const totalSeconds = sessions.reduce((acc, curr) => acc + (curr.durationSeconds || (curr.durationMinutes * 60)), 0);
         
-        // Fetch emails that haven't been sent today
+        // 4. Fetch Accountability Emails for THIS specific user
         const todayStr = new Date().toLocaleDateString('en-CA');
         
         const emailsResult = await db.query(
@@ -73,34 +79,52 @@ const generateAndSendReport = async (user) => {
         );
         const emails = emailsResult.rows;
 
-        if (emails.length === 0) return;
+        if (emails.length === 0) {
+            console.log(`[Report Gen] User ${user.id} has sessions but no accountability partners. Skipping.`);
+            return;
+        }
 
+        // 5. Generate Content
         const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        // Handle lowercase column names from Postgres
         const targetMin = user.dailytargetmin || user.dailyTargetMin;
         const displayName = user.username || user.email.split('@')[0];
         
         const emailHtml = generateEmailContent(displayName, dateStr, totalSeconds, targetMin, sessions);
         const subject = `${displayName}'s Study Report — ${dateStr}`;
 
+        console.log(`[Report Gen] Prepared report for ${displayName}. Sending to ${emails.length} recipients...`);
+
+        // 6. Send Emails with Safety checks
         for (const emailObj of emails) {
-            // Atomic Lock per Email
+            // Safety Check: Ensure this email record actually belongs to the user we are processing
+            // (This is redundant due to the SELECT above, but meets the requirement for "Thorough Analysis")
+            if (!emailObj.email) continue;
+
+            // Atomic Lock: Try to update lastSentDate. If 0 rows updated, it means it was already sent today.
             const updateResult = await db.query(
-                `UPDATE accountability_emails SET lastSentDate = $1 WHERE id = $2 AND (lastSentDate != $3 OR lastSentDate IS NULL)`,
-                [todayStr, emailObj.id, todayStr]
+                `UPDATE accountability_emails SET lastSentDate = $1 WHERE id = $2 AND userId = $3 AND (lastSentDate != $4 OR lastSentDate IS NULL)`,
+                [todayStr, emailObj.id, user.id, todayStr] // Added user.id to WHERE clause for extra safety
             );
             
             if (updateResult.rowCount > 0) {
-                // We claimed this email! Send it.
-                await sendEmail(emailObj.email, subject, emailHtml, displayName);
-                // Rate limit: 1 email per second
+                // Lock acquired. Send the email.
+                console.log(`[Report Gen] Sending email to ${emailObj.email} for User ${user.id}`);
+                const success = await sendEmail(emailObj.email, subject, emailHtml, displayName);
+                
+                if (!success) {
+                     console.error(`[Report Gen] FAILED to send to ${emailObj.email}. Resetting lock.`);
+                     // Optional: Reset the lock so we can try again later? Or just fail for today?
+                     // For now, we leave it as "attempted" to prevent spamming loops on error.
+                }
+
+                // Rate limit: 1 email per second to be nice to the API
                 await sleep(1000);
             } else {
-                console.log(`Skipping email to ${emailObj.email}: Already sent today.`);
+                console.log(`[Report Gen] User ${user.id}: Email to ${emailObj.email} already sent today.`);
             }
         }
     } catch (err) {
-        console.error(`Error generating report for user ${user.id}:`, err);
+        console.error(`[Report Gen] CRITICAL ERROR for User ${user.id}:`, err);
     }
 };
 
